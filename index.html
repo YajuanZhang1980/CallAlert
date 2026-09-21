@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>声音检测器</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, "Microsoft YaHei", sans-serif;
+    background: #1a1a2e;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: background-color 0.1s ease;
+  }
+  body.flash {
+    background: #c0392b;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+  .subtitle {
+    color: #aaa;
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+  }
+
+  /* 圆点容器 */
+  .dot-wrap {
+    width: 260px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .dot {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff5a4d, #c0392b);
+    box-shadow: 0 0 60px rgba(255, 60, 50, 0.8);
+    opacity: 0;
+    transform: scale(0.4);
+    transition: opacity 0.05s;
+  }
+  .dot.show {
+    animation: blink 0.2s steps(2) infinite;
+  }
+  @keyframes blink {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0.15; transform: scale(0.9); }
+  }
+
+  /* 提示文字 */
+  .alert-text {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #ff5a4d;
+    opacity: 0;
+    transition: opacity 0.15s;
+    text-shadow: 0 0 20px rgba(255,90,77,0.6);
+    min-height: 2.2rem;
+  }
+  .alert-text.show { opacity: 1; }
+
+  /* 音量条 */
+  .meter-wrap {
+    width: 320px;
+    margin-top: 30px;
+  }
+  .meter-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 6px;
+  }
+  .meter-track {
+    width: 100%;
+    height: 18px;
+    background: #2a2a3e;
+    border-radius: 9px;
+    overflow: hidden;
+    position: relative;
+  }
+  .meter-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c);
+    transition: width 0.05s linear;
+  }
+  .threshold-line {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 2px;
+    background: #fff;
+    box-shadow: 0 0 6px rgba(255,255,255,0.8);
+  }
+  .threshold-line::after {
+    content: "阈值";
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  /* 状态 / 控制 */
+  .status {
+    margin-top: 24px;
+    font-size: 0.9rem;
+    color: #8a8aa0;
+    min-height: 1.2rem;
+    text-align: center;
+  }
+  .start-btn {
+    margin-top: 14px;
+    padding: 12px 32px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 25px;
+    background: #4a90d9;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .start-btn:hover { background: #357abd; }
+  .start-btn:disabled { background: #555; cursor: not-allowed; }
+
+  .controls {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #aaa;
+  }
+  .controls input[type=range] { width: 160px; vertical-align: middle; }
+
+  /* 实时音量数值显示 */
+  .live-vol {
+    margin-top: 14px;
+    font-size: 1.3rem;
+    color: #d0d0e0;
+  }
+  .live-vol span {
+    color: #ffd36e;
+    font-weight: bold;
+    font-size: 1.6rem;
+    margin-left: 4px;
+    min-width: 50px;
+    display: inline-block;
+  }
+
+  /* 大字提醒 */
+  .grandpa-text {
+    font-size: 3.4rem;
+    font-weight: 900;
+    color: #ffd36e;
+    text-shadow: 0 0 18px rgba(255,180,60,0.6), 0 0 40px rgba(255,90,77,0.4);
+    letter-spacing: 3px;
+    margin: 6px 0 18px;
+    text-align: center;
+    line-height: 1.2;
+    padding: 0 16px;
+  }
+
+  /* 计数器 */
+  .counter {
+    margin-top: 18px;
+    font-size: 1.2rem;
+    color: #d0d0e0;
+  }
+  .counter span {
+    color: #ffd36e;
+    font-weight: bold;
+    font-size: 1.6rem;
+    margin: 0 4px;
+  }
+</style>
+</head>
+<body>
+  <h1>🎤 声音检测器</h1>
+  <div class="subtitle">拍手或发出较大声响即可触发</div>
+
+  <div class="grandpa-text">外公，有人在叫你！</div>
+
+  <div class="dot-wrap">
+    <div class="dot" id="dot"></div>
+  </div>
+  <div class="alert-text" id="alertText">检测到声音</div>
+  <div class="counter">本次已触发 <span id="counter">0</span> 次</div>
+
+  <div class="meter-wrap">
+    <div class="meter-label">
+      <span>音量</span>
+      <span id="volNum">0%</span>
+    </div>
+    <div class="meter-track">
+      <div class="meter-fill" id="meterFill"></div>
+      <div class="threshold-line" id="thresholdLine"></div>
+    </div>
+  </div>
+  <div class="live-vol">实时音量：<span id="liveVol">0</span></div>
+
+  <div class="controls">
+    <label>灵敏度阈值:</label>
+    <input type="range" id="thresholdSlider" min="3" max="50" value="20">
+    <span id="thresholdVal">20</span>
+  </div>
+
+  <div class="status" id="status">点击下方按钮开始监听</div>
+  <button class="start-btn" id="startBtn">开始监听</button>
+
+<script>
+  const dot        = document.getElementById('dot');
+  const alertText  = document.getElementById('alertText');
+  const meterFill  = document.getElementById('meterFill');
+  const volNum     = document.getElementById('volNum');
+  const status     = document.getElementById('status');
+  const startBtn   = document.getElementById('startBtn');
+  const slider     = document.getElementById('thresholdSlider');
+  const thresholdVal = document.getElementById('thresholdVal');
+  const thresholdLine = document.getElementById('thresholdLine');
+  const counterEl   = document.getElementById('counter');
+  const liveVol     = document.getElementById('liveVol');
+
+  let threshold = parseInt(slider.value, 10);
+  let audioCtx, analyser, dataArray, source, rafId;
+  let isMonitoring = false;
+  let lastTrigger = 0;   // 上次触发时间，用于防抖
+  let triggerCount = 0;  // 本次已触发次数
+
+  // === 累计触发逻辑参数 ===
+  // windowMs：统计窗口长度（毫秒），0.5 秒 = 500
+  // requiredMs：窗口内需要累计超过阈值的毫秒数，0.3 秒 = 300
+  // 帧间隔约 16ms，循环里用时间差累加，比按帧数计数更准确
+  const windowMs    = 500;
+  const requiredMs  = 300;
+  // 历史采样：每个元素 [时间戳, 是否超阈值]
+  const samples = [];
+
+  // 更新阈值线位置：threshold 即音量百分比（volume 为 0-100）
+  function updateThresholdLine() {
+    thresholdLine.style.left = threshold + '%';
+  }
+  updateThresholdLine();
+
+  slider.addEventListener('input', () => {
+    threshold = parseInt(slider.value, 10);
+    thresholdVal.textContent = threshold;
+    updateThresholdLine();
+  });
+
+  startBtn.addEventListener('click', async () => {
+    if (isMonitoring) return;
+    startBtn.disabled = true;
+    status.textContent = '正在请求麦克风权限…';
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      startMonitoring(stream);
+    } catch (err) {
+      status.textContent = '麦克风获取失败：' + (err.message || err.name);
+      startBtn.disabled = false;
+      console.error(err);
+    }
+  });
+
+  function startMonitoring(stream) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AC();
+    source = audioCtx.createMediaStreamSource(stream);
+
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0.4;
+    source.connect(analyser);
+
+    const bufferLength = analyser.fftSize;
+    dataArray = new Uint8Array(bufferLength);
+
+    isMonitoring = true;
+    status.textContent = '✅ 监听中… 拍手试试！';
+    loop();
+  }
+
+  function loop() {
+    if (!isMonitoring) return;
+    rafId = requestAnimationFrame(loop);
+
+    analyser.getByteTimeDomainData(dataArray);
+
+    // 计算 RMS 音量 (0-100)
+    let sum = 0;
+    for (let i = 0; i < dataArray.length; i++) {
+      const v = (dataArray[i] - 128) / 128; // -1..1
+      sum += v * v;
+    }
+    const rms = Math.sqrt(sum / dataArray.length);
+    const volume = Math.min(100, Math.round(rms * 100 * 3)); // 放大3倍便于观察
+
+    // 更新音量条与实时音量数值
+    meterFill.style.width = volume + '%';
+    volNum.textContent = volume + '%';
+    liveVol.textContent = volume;
+
+    // === 累计触发逻辑：0.5 秒窗口内累计超过 0.3 秒达阈值即触发 ===
+    const now = performance.now();
+    const overThreshold = volume >= threshold;
+
+    // 记录本次采样（用上一帧到本帧的时间差累加，更准确）
+    const prevTime = samples.length ? samples[samples.length - 1][0] : now;
+    const dt = Math.min(50, Math.max(0, now - prevTime)); // 单帧最大计 50ms，防卡顿刷分
+    samples.push([now, overThreshold ? dt : 0]);
+
+    // 清掉窗口之外的老采样
+    const cutoff = now - windowMs;
+    while (samples.length && samples[0][0] < cutoff) samples.shift();
+
+    // 统计窗口内超过阈值的累计毫秒数
+    let accumulated = 0;
+    for (let i = 0; i < samples.length; i++) accumulated += samples[i][1];
+
+    // 满足累计时长且已过防抖间隔 → 触发
+    if (accumulated >= requiredMs && now - lastTrigger > 1200) {
+      lastTrigger = now;
+      samples.length = 0;   // 触发后清空，避免紧接着二次触发
+      triggerAlert();
+    }
+  }
+
+  function triggerAlert() {
+    // 计数 +1 并刷新显示
+    triggerCount++;
+    counterEl.textContent = triggerCount;
+
+    // 显示圆点 + 文字
+    dot.classList.add('show');
+    alertText.classList.add('show');
+    // 背景闪红
+    document.body.classList.add('flash');
+
+    // 1 秒后消失
+    setTimeout(() => {
+      dot.classList.remove('show');
+      alertText.classList.remove('show');
+      document.body.classList.remove('flash');
+    }, 1000);
+  }
+</script>
+</body>
+</html>
