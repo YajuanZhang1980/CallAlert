@@ -23,29 +23,23 @@
   }
 
   h1 {
-    font-size: 2rem;
-    margin-bottom: 8px;
+    font-size: 2.3rem;
+    margin-bottom: 4px;
     letter-spacing: 2px;
   }
-  .subtitle {
-    color: #aaa;
-    margin-bottom: 30px;
-    font-size: 0.95rem;
-  }
-
   /* 圆点容器 */
   .dot-wrap {
-    width: 260px;
-    height: 260px;
+    width: 200px;
+    height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
   .dot {
-    width: 200px;
-    height: 200px;
+    width: 150px;
+    height: 150px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #ff5a4d, #c0392b);
     box-shadow: 0 0 60px rgba(255, 60, 50, 0.8);
@@ -63,26 +57,26 @@
 
   /* 提示文字 */
   .alert-text {
-    font-size: 2.2rem;
+    font-size: 2.5rem;
     font-weight: bold;
     color: #ff5a4d;
     opacity: 0;
     transition: opacity 0.15s;
     text-shadow: 0 0 20px rgba(255,90,77,0.6);
-    min-height: 2.2rem;
+    min-height: 0;
   }
   .alert-text.show { opacity: 1; }
 
   /* 音量条 */
   .meter-wrap {
     width: 320px;
-    margin-top: 30px;
+    margin-top: 20px;
   }
   .meter-label {
     display: flex;
     justify-content: space-between;
-    font-size: 0.8rem;
-    color: #888;
+    font-size: 1rem;
+    color: #aaa;
     margin-bottom: 6px;
   }
   .meter-track {
@@ -113,23 +107,23 @@
     top: -18px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 0.7rem;
+    font-size: 0.85rem;
     color: #fff;
     white-space: nowrap;
   }
 
   /* 状态 / 控制 */
   .status {
-    margin-top: 24px;
-    font-size: 0.9rem;
+    margin-top: 14px;
+    font-size: 1.15rem;
     color: #8a8aa0;
     min-height: 1.2rem;
     text-align: center;
   }
   .start-btn {
-    margin-top: 14px;
-    padding: 12px 32px;
-    font-size: 1rem;
+    margin-top: 10px;
+    padding: 15px 40px;
+    font-size: 1.35rem;
     border: none;
     border-radius: 25px;
     background: #4a90d9;
@@ -141,38 +135,38 @@
   .start-btn:disabled { background: #555; cursor: not-allowed; }
 
   .controls {
-    margin-top: 16px;
+    margin-top: 10px;
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 0.85rem;
-    color: #aaa;
+    font-size: 1.1rem;
+    color: #bbb;
   }
   .controls input[type=range] { width: 160px; vertical-align: middle; }
 
   /* 实时音量数值显示 */
   .live-vol {
-    margin-top: 14px;
-    font-size: 1.3rem;
+    margin-top: 8px;
+    font-size: 1.6rem;
     color: #d0d0e0;
   }
   .live-vol span {
     color: #ffd36e;
     font-weight: bold;
-    font-size: 1.6rem;
+    font-size: 2rem;
     margin-left: 4px;
-    min-width: 50px;
+    min-width: 60px;
     display: inline-block;
   }
 
   /* 大字提醒 */
   .grandpa-text {
-    font-size: 3.4rem;
+    font-size: 3.6rem;
     font-weight: 900;
     color: #ffd36e;
     text-shadow: 0 0 18px rgba(255,180,60,0.6), 0 0 40px rgba(255,90,77,0.4);
     letter-spacing: 3px;
-    margin: 6px 0 18px;
+    margin: 4px 0 8px;
     text-align: center;
     line-height: 1.2;
     padding: 0 16px;
@@ -180,8 +174,8 @@
 
   /* 计数器 */
   .counter {
-    margin-top: 18px;
-    font-size: 1.2rem;
+    margin-top: 8px;
+    font-size: 1.5rem;
     color: #d0d0e0;
   }
   .counter span {
@@ -194,8 +188,6 @@
 </head>
 <body>
   <h1>🎤 声音检测器</h1>
-  <div class="subtitle">拍手或发出较大声响即可触发</div>
-
   <div class="grandpa-text">外公，有人在叫你！</div>
 
   <div class="dot-wrap">
